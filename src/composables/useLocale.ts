@@ -57,7 +57,7 @@ export function useLocale() {
 
     // If no saved locale, set default
     if (!generalStore.locale) {
-      generalStore.locale = 'zh-CN'
+      generalStore.locale = 'en-US'
     }
 
     // Set the initial locale once all locales are loaded

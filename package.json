@@ -1,12 +1,18 @@
 {
-  "name": "bongo-cat",
+  "name": "bongo-cat-i18n",
   "type": "module",
-  "version": "0.7.2-i18n.1",
+  "version": "1.0.0",
   "private": true,
   "author": {
-    "name": "ayangweb",
-    "email": "ayangweb@foxmail.com"
+    "name": "cuonglmptit",
+    "email": "cuonglemanhptit@gmail.com"
   },
+  "contributors": [
+    {
+      "name": "ayangweb",
+      "email": "ayangweb@foxmail.com"
+    }
+  ],
   "scripts": {
     "dev": "run-s build:icon dev:vite",
     "build": "run-s build:*",

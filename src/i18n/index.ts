@@ -4,6 +4,6 @@ import { createI18n } from 'vue-i18n'
 // Locales and messages will be loaded dynamically at runtime.
 export const i18n = createI18n({
   legacy: false, // Use Composition API mode
-  locale: 'zh-CN', // Default locale (will be overridden when initialized)
+  locale: 'en-US', // Default locale (will be overridden when initialized)
   messages: {}, // No preloaded messages
 })
