@@ -11,7 +11,7 @@ import { useI18n } from 'vue-i18n'
 
 import ProList from '@/components/pro-list/index.vue'
 import ProListItem from '@/components/pro-list-item/index.vue'
-import { GITHUB_LINK, LISTEN_KEY } from '@/constants'
+import { GITHUB_LINK, GITHUB_LINK_I18N_FORKED, LISTEN_KEY } from '@/constants'
 import { useAppStore } from '@/stores/app'
 
 const { t } = useI18n()
@@ -89,6 +89,14 @@ function feedbackIssue() {
       <template #description>
         <a :href="GITHUB_LINK">
           {{ GITHUB_LINK }}
+        </a>
+      </template>
+    </ProListItem>
+
+    <ProListItem :title="`${t('about.openSource')} (Forked repo – Multi-language support)`">
+      <template #description>
+        <a :href="GITHUB_LINK_I18N_FORKED">
+          {{ GITHUB_LINK_I18N_FORKED }}
         </a>
       </template>
     </ProListItem>
