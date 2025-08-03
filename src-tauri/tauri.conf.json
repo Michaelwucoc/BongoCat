@@ -40,7 +40,9 @@
       "assetProtocol": {
         "enable": true,
         "scope": {
-          "allow": ["**/*"],
+          "allow": [
+            "**/*"
+          ],
           "requireLiteralLeadingDot": false
         }
       }
@@ -50,7 +52,14 @@
     "active": true,
     "category": "Game",
     "createUpdaterArtifacts": true,
-    "targets": ["nsis", "dmg", "app", "appimage", "deb", "rpm"],
+    "targets": [
+      "nsis",
+      "dmg",
+      "app",
+      "appimage",
+      "deb",
+      "rpm"
+    ],
     "shortDescription": "BongoCat",
     "icon": [
       "icons/32x32.png",
@@ -59,15 +68,18 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "resources": ["assets/tray.png", "assets/models", "assets/locales"]
+    "resources": [
+      "assets/tray.png",
+      "assets/models",
+      "assets/locales"
+    ]
   },
   "plugins": {
     "updater": {
       "dangerousInsecureTransportProtocol": true,
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEVBRjJFMzE3MjEwMUZEMTAKUldRUS9RRWhGK1B5NmdkemhKcUFrVjZBQXlzdExpakdWVEJDeU9XckVsbzV2cFIycVJOempWa2UK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQxRDkzRTFENjRCQURGNkYKUldSdjM3cGtIVDdaMFQ4ZkIzTmt4bkJuTUNjWnc4U0h5V3pWNDllbDNiaEFwclVOTGdCWEI3Y3gK",
       "endpoints": [
-        "http://api.upgrade.toolsetlink.com/v1/tauri/upgrade?tauriKey=KtGlsZUVXmWfjkRKCuqpfw&versionName={{current_version}}&target={{target}}&arch={{arch}}&appointVersionName=&devModelKey=&devKey=",
-        "https://gh-proxy.com/github.com/ayangweb/BongoCat/releases/latest/download/latest.json"
+        "https://github.com/cuonglmptit/bongocat-i18n/releases/latest/download/latest.json"
       ]
     },
     "fs": {
