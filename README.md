@@ -20,6 +20,13 @@
 
 ---
 
+## 🎨 Model khác / Other models
+
+> 🇻🇳 Ngoài model mặc định, bạn có thể tải thêm nhiều model khác từ  
+> 🇬🇧 Besides the default model, you can download more models from  
+> [ayangweb/Awesome-BongoCat](https://github.com/ayangweb/Awesome-BongoCat).
+
+---
 ## 🏗 Nguồn gốc dự án / Project origins
 
 Khi tìm hiểu về **BongoCat**, mình phát hiện dự án có một lịch sử khá thú vị.
@@ -60,7 +67,7 @@ Khi tìm hiểu về **BongoCat**, mình phát hiện dự án có một lịch 
 
 ### 🌐 🇻🇳 Thêm ngôn ngữ mới / 🇬🇧 Add a new language
 
-> **🇻🇳** Vì mình không thể dịch hết sang tất cả các ngôn ngữ, bạn có thể dựa vào file tiếng Anh (`en.json`) để dịch sang ngôn ngữ của bạn.
+> **🇻🇳** Vì mình không thể dịch hết sang tất cả các ngôn ngữ, bạn có thể dựa vào file tiếng Anh (`en.json`) để dịch sang ngôn ngữ của bạn.  
 > **🇬🇧** Since I can't translate into all languages, you can use the English file (`en.json`) as a base and translate it into your language.
 
 1. **🇻🇳** Mở thư mục `assets/locales`.
@@ -82,7 +89,7 @@ Khi tìm hiểu về **BongoCat**, mình phát hiện dự án có một lịch 
    }
    ```
 
-4. **🇻🇳** Lưu file và **khởi động lại ứng dụng** để áp dụng.
+4. **🇻🇳** Lưu file và **khởi động lại ứng dụng** để áp dụng.  
    **🇬🇧** Save the file and **restart the app** to apply.
 
 ---
@@ -112,23 +119,31 @@ pnpm tauri build
 - **Mới:** Installer (NSIS) có thể chọn ngôn ngữ khi cài đặt (**New:** Installer (NSIS) supports language selection during setup)
 
 > ⚠️ **🇻🇳 Lưu ý:** Bản phát hành chính thức hiện tại chỉ build sẵn cho Windows. Các hệ điều hành khác (macOS, Linux) có thể **tự tải source về, build và test**. Mình không chịu trách nhiệm cho các bản build tự thực hiện.
-> **🇬🇧 Note:** Official release currently only builds for Windows. Other operating systems (macOS, Linux) can **download the source, build and test**. I’m not responsible for self-built versions.
+> 
+> ⚠️ **🇬🇧 Note:** Official release currently only builds for Windows. Other operating systems (macOS, Linux) can **download the source, build and test**. I’m not responsible for self-built versions.
 
 ---
 
 ## License
 
->### [MIT](./LICENSE).
+>### [MIT](./LICENSE)
 
 ---
 
 ## Credits
 
-- [HamishDuncanson](https://github.com/HamishDuncanson) – 🇻🇳 ý tưởng gốc (theo chia sẻ của kuroni)
-  🇬🇧 original idea (according to kuroni)
-- [kuroni](https://github.com/kuroni) – 🇻🇳 phát triển bongocat-osu (người Việt 🇻🇳)
-  🇬🇧 developed bongocat-osu (Vietnamese developer 🇻🇳)
-- [MMmmmoko](https://github.com/MMmmmoko) – 🇻🇳 tạo Bongo-Cat-Mver (fork từ kuroni)
-  🇬🇧 created Bongo-Cat-Mver (forked from kuroni)
-- [ayangweb](https://github.com/ayangweb) – 🇻🇳 viết lại đa nền tảng bằng Tauri
-  🇬🇧 rewrote as a cross-platform version using Tauri
+- [HamishDuncanson](https://github.com/HamishDuncanson)  
+  🇻🇳 Ý tưởng gốc (theo chia sẻ của kuroni)  
+  🇬🇧 Original idea (according to kuroni)
+
+- [kuroni](https://github.com/kuroni)  
+  🇻🇳 Phát triển bongocat-osu (người Việt 🇻🇳)  
+  🇬🇧 Developed bongocat-osu (Vietnamese developer 🇻🇳)
+
+- [MMmmmoko](https://github.com/MMmmmoko)  
+  🇻🇳 Tạo Bongo-Cat-Mver (fork từ kuroni)  
+  🇬🇧 Created Bongo-Cat-Mver (forked from kuroni)
+
+- [ayangweb](https://github.com/ayangweb)  
+  🇻🇳 Viết lại đa nền tảng bằng Tauri  
+  🇬🇧 Rewrote as a cross-platform version using Tauri
