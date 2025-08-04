@@ -3,43 +3,51 @@ import { convertFileSrc } from '@tauri-apps/api/core'
 import { resolveResource } from '@tauri-apps/api/path'
 import { openPath } from '@tauri-apps/plugin-opener'
 import { Button, Select, SelectOption } from 'ant-design-vue'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import ProListItem from '@/components/pro-list-item/index.vue'
 import { useLocale } from '@/composables/useLocale'
 
-// Tauri API
-
-// Reactive để lưu icon path
+// Reactive to save icon path
 const languageIcon = ref('')
+const { t } = useI18n()
+const { generalStore, locales } = useLocale()
 
-/**
- * Lấy icon PNG từ assets/locales và convert sang file://
- */
-async function loadLanguageIcon() {
-  const path = await resolveResource('assets/locales/languages.svg')
+// Grab icon PNG from assets/locales
+async function updateLanguageIcon() {
+  const file = generalStore.isDark ? 'languages-white.svg' : 'languages-black.svg'
+  const path = await resolveResource(`assets/locales/${file}`)
   languageIcon.value = convertFileSrc(path)
 }
-
-/**
- * Mở thư mục chứa file ngôn ngữ trong Explorer/Finder
- */
+// Open locales folder
 async function openLocalesFolder() {
   const localesPath = await resolveResource('assets/locales')
   await openPath(localesPath)
 }
 
 onMounted(() => {
-  loadLanguageIcon()
-})
+  updateLanguageIcon()
 
-const { t } = useI18n()
-const { generalStore, locales } = useLocale()
+  // Watch theme change to update icon
+  watch(
+    () => generalStore.isDark,
+    () => {
+      updateLanguageIcon()
+    },
+    { immediate: true }, // 👈 thêm dòng này
+  )
+})
 </script>
 
 <template>
   <ProListItem :title="t('general.languages.title')">
+    <!--
+      ⚠️ Do NOT remove or change this fixed width!
+      If the Select shrinks to fit short labels (e.g., "中文"),
+      it will trigger layout reflow and freeze the UI when switching languages.
+      Keep a fixed width or a large enough min-width to avoid this bug.
+    -->
     <img
       v-if="languageIcon"
       class="h-5 w-5 cursor-pointer"
