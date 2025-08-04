@@ -90,17 +90,15 @@ Khi tìm hiểu về **BongoCat**, mình phát hiện dự án có một lịch 
 > **🇻🇳** Bạn cũng có thể **tự tải source về**, thêm file JSON ngôn ngữ mới vào `assets/locales` và **build lại** để tạo bộ cài sẵn ngôn ngữ này.
 > **🇬🇧** You can also **download the source**, add your new language JSON file into `assets/locales`, and **build again** to create an installer with this language included.
 
-Ví dụ build lại / Build example:
+## Ví dụ build lại / Build example:
 
-### Test:
+>### Test:
+pnpm install  
+pnpm tauri dev  
 
-pnpm install
-pnpm tauri dev
-
-### Build:
-
-pnpm install
-pnpm tauri build
+>### Build:
+pnpm install  
+pnpm tauri build  
 
 ---
 
@@ -120,7 +118,7 @@ pnpm tauri build
 
 ## License
 
-Dự án phát hành dưới giấy phép [MIT](./LICENSE).
+>### [MIT](./LICENSE).
 
 ---
 
