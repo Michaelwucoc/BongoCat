@@ -1,11 +1,12 @@
 import { resolveResource } from '@tauri-apps/api/path'
+import { filter, find } from 'es-toolkit/compat'
 import { nanoid } from 'nanoid'
 import { defineStore } from 'pinia'
-import { onMounted, ref } from 'vue'
+import { reactive, ref } from 'vue'
 
 import { join } from '@/utils/path'
 
-export type ModelMode = 'standard' | 'keyboard' | 'handle'
+export type ModelMode = 'standard' | 'keyboard' | 'gamepad'
 
 export interface Model {
   id: string
@@ -36,34 +37,47 @@ export const useModelStore = defineStore('model', () => {
   const currentModel = ref<Model>()
   const motions = ref<MotionGroup>({})
   const expressions = ref<Expression[]>([])
+  const supportKeys = reactive<Record<string, string>>({})
+  const pressedKeys = reactive<Record<string, string>>({})
 
-  onMounted(async () => {
+  const init = async () => {
     const modelsPath = await resolveResource('assets/models')
 
-    if (models.value.length === 0) {
-      const modes: ModelMode[] = ['standard', 'keyboard']
+    const nextModels = filter(models.value, { isPreset: false })
+    const presetModels = filter(models.value, { isPreset: true })
 
-      for await (const mode of modes) {
-        const path = join(modelsPath, mode)
+    const modes: ModelMode[] = ['gamepad', 'keyboard', 'standard']
 
-        models.value.push({
-          id: nanoid(),
-          path,
-          mode,
-          isPreset: true,
-        })
-      }
+    for (const mode of modes) {
+      const matched = find(presetModels, { mode })
+
+      nextModels.unshift({
+        id: matched?.id ?? nanoid(),
+        mode,
+        isPreset: true,
+        path: join(modelsPath, mode),
+      })
     }
 
-    if (currentModel.value) return
+    const matched = find(nextModels, { id: currentModel.value?.id })
 
-    currentModel.value = models.value[0]
-  })
+    currentModel.value = matched ?? nextModels[0]
+
+    models.value = nextModels
+  }
 
   return {
     models,
     currentModel,
     motions,
     expressions,
+    supportKeys,
+    pressedKeys,
+    init,
   }
+}, {
+  tauri: {
+    filterKeys: ['models', 'currentModel'],
+    filterKeysStrategy: 'pick',
+  },
 })

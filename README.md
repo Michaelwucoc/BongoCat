@@ -53,9 +53,15 @@
   </p>
 </div>
 
-| macOS                                                                                     | Windows                                                                                     | Linux(x11)                                                                                |
-| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| ![macOS](https://github.com/user-attachments/assets/e932b022-1472-4bbd-87ef-4a8ea374890a) | ![Windows](https://github.com/user-attachments/assets/79a4652e-0d14-412d-a274-4ccdd825d7c6) | ![Linux](https://github.com/user-attachments/assets/fd069c12-d12d-423b-b792-98b5926a7f09) |
+| macOS                                                                                        | Windows                                                                                        | Linux(x11)                                                                                   |
+| -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| ![macOS](https://i0.hdslb.com/bfs/openplatform/dff276b96d49c5d6c431b74b531aab72191b3d87.png) | ![Windows](https://i0.hdslb.com/bfs/openplatform/a4149b753856ee7f401989da902cf3b5ad35b39e.png) | ![Linux](https://i0.hdslb.com/bfs/openplatform/3b49f961819d3ff63b2b80251c1cc13c27e986b0.png) |
+
+## 赞助商
+
+<a href="https://www.toolsetlink.com">
+  <img height="54" alt="UpgradeLink" src="https://github.com/user-attachments/assets/6b84fb0f-3f1d-44b5-9932-2298bc999d8d" />
+</a>
 
 ## 开发背景
 
@@ -68,15 +74,21 @@
 - [夸克网盘](https://pan.quark.cn/s/70f2f2663ce1)
 - [GitHub Releases](https://github.com/ayangweb/BongoCat/releases)
 
-> 不确定下载哪一个？请查阅[下载指南](.github/DOWNLOAD_GUIDE.md)。
+不确定下载哪一个？请查阅[下载指南](.github/DOWNLOAD_GUIDE.md)。
 
 ## 功能介绍
 
 - 适配 macOS、Windows 和 Linux(x11)。
-- 根据据键盘或鼠标操作，同步移动鼠标或敲击键盘。
+- 根据键盘、鼠标或手柄的操作，同步对应的动作。
 - 支持导入自定义模型，自由打造专属猫咪形象。
 - 完全开源，代码公开透明，绝不收集任何用户数据。
 - 支持离线运行，无需联网，保护用户隐私。
+
+## 模型转换
+
+如果你想将 Bongo-Cat-Mver 应用中的模型转换为兼容 BongoCat 的格式，可以使用以下工具：
+
+🔗 [在线转换](https://bongocat.vteamer.cc)
 
 ## 更多模型
 
@@ -88,9 +100,9 @@
 
 <a href="https://qm.qq.com/q/AS3gNv2Vzy">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/6428b6ff-0b39-4e16-a750-bad6f6b376e9" />
-   <source media="(prefers-color-scheme: light)" srcset="https://github.com/user-attachments/assets/e50883e2-0be7-4eea-9879-e725fa1dffd2" />
-   <img alt="QQ Group" src="https://github.com/user-attachments/assets/e50883e2-0be7-4eea-9879-e725fa1dffd2" height="250" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://i0.hdslb.com/bfs/openplatform/5ad8e4278c525cca6d3b4426c30b6d299d8a9654.png" />
+   <source media="(prefers-color-scheme: light)" srcset="https://i0.hdslb.com/bfs/openplatform/599680ad67bc9f9f876f76069c2239e9a85bb54d.png" />
+   <img alt="QQ Group" src="https://i0.hdslb.com/bfs/openplatform/599680ad67bc9f9f876f76069c2239e9a85bb54d.png" height="250" />
  </picture>
 </a>
 

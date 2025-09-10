@@ -1,53 +1,46 @@
-import { convertFileSrc } from '@tauri-apps/api/core'
-import { LogicalSize, PhysicalSize } from '@tauri-apps/api/dpi'
-import { resolveResource } from '@tauri-apps/api/path'
+import type { CursorPoint } from '@/utils/monitor'
+
+import { LogicalSize } from '@tauri-apps/api/dpi'
+import { resolveResource, sep } from '@tauri-apps/api/path'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { message } from 'ant-design-vue'
 import { isNil, round } from 'es-toolkit'
-import { computed, watch } from 'vue'
+import { nth } from 'es-toolkit/compat'
+import { ref } from 'vue'
 
 import live2d from '../utils/live2d'
-import { getCursorMonitor } from '../utils/monitor'
 
 import { useCatStore } from '@/stores/cat'
 import { useModelStore } from '@/stores/model'
-import { getImageSize } from '@/utils/dom'
-import { join } from '@/utils/path'
+import { getCursorMonitor } from '@/utils/monitor'
 
 const appWindow = getCurrentWebviewWindow()
+
+export interface ModelSize {
+  width: number
+  height: number
+}
 
 export function useModel() {
   const modelStore = useModelStore()
   const catStore = useCatStore()
-
-  const backgroundImage = computed(() => {
-    return convertFileSrc(join(modelStore.currentModel!.path, 'resources', 'background.png'))
-  })
-
-  watch(() => modelStore.currentModel, handleLoad, { deep: true, immediate: true })
-
-  watch(() => catStore.scale, async () => {
-    const { width, height } = await getImageSize(backgroundImage.value)
-
-    appWindow.setSize(
-      new PhysicalSize({
-        width: round(width * (catStore.scale / 100)),
-        height: round(height * (catStore.scale / 100)),
-      }),
-    )
-  }, { immediate: true })
+  const modelSize = ref<ModelSize>()
 
   async function handleLoad() {
     try {
-      const { path } = modelStore.currentModel!
+      if (!modelStore.currentModel) return
+
+      const { path } = modelStore.currentModel
 
       await resolveResource(path)
 
-      const data = await live2d.load(path)
+      const { width, height, ...rest } = await live2d.load(path)
+
+      modelSize.value = { width, height }
 
       handleResize()
 
-      Object.assign(modelStore, data)
+      Object.assign(modelStore, rest)
     } catch (error) {
       message.error(String(error))
     }
@@ -58,13 +51,11 @@ export function useModel() {
   }
 
   async function handleResize() {
-    if (!live2d.model) return
+    if (!modelSize.value) return
 
-    const { innerWidth, innerHeight } = window
+    live2d.resizeModel(modelSize.value)
 
-    const { width, height } = await getImageSize(backgroundImage.value)
-
-    live2d.model?.scale.set(innerWidth / width)
+    const { width, height } = modelSize.value
 
     if (round(innerWidth / innerHeight, 1) !== round(width / height, 1)) {
       await appWindow.setSize(
@@ -80,23 +71,51 @@ export function useModel() {
     catStore.scale = round((size.width / width) * 100)
   }
 
-  function handleKeyDown(side: 'left' | 'right', pressed: boolean) {
-    const id = side === 'left' ? 'CatParamLeftHandDown' : 'CatParamRightHandDown'
+  const handlePress = (key: string) => {
+    const path = modelStore.supportKeys[key]
 
-    const { min, max } = live2d.getParameterRange(id)
+    if (!path) return
 
-    live2d.setParameterValue(id, pressed ? max : min)
+    if (catStore.singleMode) {
+      const dirName = nth(path.split(sep()), -2)!
+
+      const filterKeys = Object.entries(modelStore.pressedKeys).filter(([, value]) => {
+        return value.includes(dirName)
+      })
+
+      for (const [key] of filterKeys) {
+        handleRelease(key)
+      }
+    }
+
+    modelStore.pressedKeys[key] = path
   }
 
-  async function handleMouseMove() {
-    const monitor = await getCursorMonitor()
+  const handleRelease = (key: string) => {
+    delete modelStore.pressedKeys[key]
+  }
+
+  function handleKeyChange(isLeft = true, pressed = true) {
+    const id = isLeft ? 'CatParamLeftHandDown' : 'CatParamRightHandDown'
+
+    live2d.setParameterValue(id, pressed)
+  }
+
+  function handleMouseChange(key: string, pressed = true) {
+    const id = key === 'Left' ? 'ParamMouseLeftDown' : 'ParamMouseRightDown'
+
+    live2d.setParameterValue(id, pressed)
+  }
+
+  async function handleMouseMove(point: CursorPoint) {
+    const monitor = await getCursorMonitor(point)
 
     if (!monitor) return
 
-    const { size, position, cursorPosition } = monitor
+    const { size, position, cursorPoint } = monitor
 
-    const xRatio = (cursorPosition.x - position.x) / size.width
-    const yRatio = (cursorPosition.y - position.y) / size.height
+    const xRatio = (cursorPoint.x - position.x) / size.width
+    const yRatio = (cursorPoint.y - position.y) / size.height
 
     for (const id of ['ParamMouseX', 'ParamMouseY', 'ParamAngleX', 'ParamAngleY']) {
       const { min, max } = live2d.getParameterRange(id)
@@ -116,26 +135,22 @@ export function useModel() {
     }
   }
 
-  function handleMouseDown(value: string[]) {
-    const params = {
-      ParamMouseLeftDown: value.includes('Left'),
-      ParamMouseRightDown: value.includes('Right'),
-    }
+  async function handleAxisChange(id: string, value: number) {
+    const { min, max } = live2d.getParameterRange(id)
 
-    for (const [id, pressed] of Object.entries(params)) {
-      const { min, max } = live2d.getParameterRange(id)
-
-      live2d.setParameterValue(id, pressed ? max : min)
-    }
+    live2d.setParameterValue(id, Math.max(min, value * max))
   }
 
   return {
-    backgroundImage,
+    modelSize,
+    handlePress,
+    handleRelease,
     handleLoad,
     handleDestroy,
     handleResize,
-    handleKeyDown,
+    handleKeyChange,
+    handleMouseChange,
     handleMouseMove,
-    handleMouseDown,
+    handleAxisChange,
   }
 }

@@ -1,3 +1,4 @@
+import type { ModelSize } from '@/composables/useModel'
 import type { Cubism4InternalModel } from 'pixi-live2d-display'
 
 import { convertFileSrc } from '@tauri-apps/api/core'
@@ -15,22 +16,21 @@ class Live2d {
 
   constructor() { }
 
-  private mount() {
+  private initApp() {
+    if (this.app) return
+
     const view = document.getElementById('live2dCanvas') as HTMLCanvasElement
 
     this.app = new Application({
       view,
       resizeTo: window,
       backgroundAlpha: 0,
-      autoDensity: true,
       resolution: devicePixelRatio,
     })
   }
 
   public async load(path: string) {
-    if (!this.app) {
-      this.mount()
-    }
+    this.initApp()
 
     this.destroy()
 
@@ -59,9 +59,12 @@ class Live2d {
 
     this.app?.stage.addChild(this.model)
 
+    const { width, height } = this.model
     const { motions, expressions } = modelSettings
 
     return {
+      width,
+      height,
       motions,
       expressions,
     }
@@ -69,6 +72,21 @@ class Live2d {
 
   public destroy() {
     this.model?.destroy()
+  }
+
+  public resizeModel(modelSize: ModelSize) {
+    if (!this.model) return
+
+    const { width, height } = modelSize
+
+    const scaleX = innerWidth / width
+    const scaleY = innerHeight / height
+    const scale = Math.min(scaleX, scaleY)
+
+    this.model.scale.set(scale)
+    this.model.x = innerWidth / 2
+    this.model.y = innerHeight / 2
+    this.model.anchor.set(0.5)
   }
 
   public playMotion(group: string, index: number) {
@@ -98,7 +116,7 @@ class Live2d {
     }
   }
 
-  public setParameterValue(id: string, value: number) {
+  public setParameterValue(id: string, value: number | boolean) {
     const coreModel = this.getCoreModel()
 
     return coreModel?.setParameterValueById?.(id, Number(value))

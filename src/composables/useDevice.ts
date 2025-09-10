@@ -1,32 +1,25 @@
-import type { Ref } from 'vue'
+import type { CursorPoint } from '@/utils/monitor'
 
-import { readDir } from '@tauri-apps/plugin-fs'
-import { uniq } from 'es-toolkit'
-import { reactive, ref, watch } from 'vue'
+import { invoke } from '@tauri-apps/api/core'
+import { useDebounceFn } from '@vueuse/core'
+import { isEqual, mapValues } from 'es-toolkit'
+import { ref } from 'vue'
 
-import { LISTEN_KEY } from '../constants'
+import { INVOKE_KEY, LISTEN_KEY } from '../constants'
 
+import { useModel } from './useModel'
 import { useTauriListen } from './useTauriListen'
 
-import { useCatStore } from '@/stores/cat'
 import { useModelStore } from '@/stores/model'
-import { isImage } from '@/utils/is'
-import { join } from '@/utils/path'
-import { isWindows } from '@/utils/platform'
 
 interface MouseButtonEvent {
   kind: 'MousePress' | 'MouseRelease'
   value: string
 }
 
-interface MouseMoveValue {
-  x: number
-  y: number
-}
-
 interface MouseMoveEvent {
   kind: 'MouseMove'
-  value: MouseMoveValue
+  value: CursorPoint
 }
 
 interface KeyboardEvent {
@@ -37,107 +30,43 @@ interface KeyboardEvent {
 type DeviceEvent = MouseButtonEvent | MouseMoveEvent | KeyboardEvent
 
 export function useDevice() {
-  const supportLeftKeys = ref<string[]>([])
-  const supportRightKeys = ref<string[]>([])
-  const pressedMouses = ref<string[]>([])
-  const mousePosition = reactive<MouseMoveValue>({ x: 0, y: 0 })
-  const pressedLeftKeys = ref<string[]>([])
-  const pressedRightKeys = ref<string[]>([])
-  const catStore = useCatStore()
   const modelStore = useModelStore()
-  const releaseTimers = new Map<string, NodeJS.Timeout>()
+  const lastCursorPoint = ref<CursorPoint>({ x: 0, y: 0 })
+  const { handlePress, handleRelease, handleMouseChange, handleMouseMove } = useModel()
 
-  watch(() => modelStore.currentModel, async (model) => {
-    if (!model) return
-
-    const keySides = [
-      {
-        side: 'left',
-        supportKeys: supportLeftKeys,
-        pressedKeys: pressedLeftKeys,
-      },
-      {
-        side: 'right',
-        supportKeys: supportRightKeys,
-        pressedKeys: pressedRightKeys,
-      },
-    ]
-
-    for await (const item of keySides) {
-      const { side, supportKeys, pressedKeys } = item
-
-      try {
-        const files = await readDir(join(model.path, 'resources', `${side}-keys`))
-
-        const imageFiles = files.filter(file => isImage(file.name))
-
-        supportKeys.value = imageFiles.map((item) => {
-          return item.name.split('.')[0]
-        })
-
-        pressedKeys.value = pressedKeys.value.filter((key) => {
-          return supportKeys.value.includes(key)
-        })
-      } catch {
-        supportKeys.value = []
-        pressedKeys.value = []
-      }
-    }
-  }, { deep: true, immediate: true })
-
-  const handlePress = (array: Ref<string[]>, value?: string) => {
-    if (!value) return
-
-    if (catStore.singleMode) {
-      array.value = [value]
-    } else {
-      array.value = uniq(array.value.concat(value))
-    }
+  const startListening = () => {
+    invoke(INVOKE_KEY.START_DEVICE_LISTENING)
   }
 
-  const handleRelease = (array: Ref<string[]>, value?: string) => {
-    if (!value) return
-
-    array.value = array.value.filter(item => item !== value)
-  }
+  const debouncedRelease = useDebounceFn(handleRelease, 100)
 
   const getSupportedKey = (key: string) => {
-    for (const side of ['left', 'right']) {
-      let nextKey = key
+    let nextKey = key
 
-      const supportKeys = side === 'left' ? supportLeftKeys.value : supportRightKeys.value
+    const unsupportedKey = !modelStore.supportKeys[nextKey]
 
-      const unsupportedKeys = !supportKeys.includes(key)
-
-      if (key.startsWith('F') && unsupportedKeys) {
-        nextKey = key.replace(/F(\d+)/, 'Fn')
-      }
-
-      for (const item of ['Meta', 'Shift', 'Alt', 'Control']) {
-        if (key.startsWith(item) && unsupportedKeys) {
-          const regex = new RegExp(`^(${item}).*`)
-          nextKey = key.replace(regex, '$1')
-        }
-      }
-
-      if (!supportKeys.includes(nextKey)) continue
-
-      return nextKey
+    if (key.startsWith('F') && unsupportedKey) {
+      nextKey = key.replace(/F(\d+)/, 'Fn')
     }
+
+    for (const item of ['Meta', 'Shift', 'Alt', 'Control']) {
+      if (key.startsWith(item) && unsupportedKey) {
+        const regex = new RegExp(`^(${item}).*`)
+        nextKey = key.replace(regex, '$1')
+      }
+    }
+
+    return nextKey
   }
 
-  const handleScheduleRelease = (keys: Ref<string[]>, key: string, delay = 500) => {
-    if (releaseTimers.has(key)) {
-      clearTimeout(releaseTimers.get(key))
-    }
+  const processMouseMove = (point: CursorPoint) => {
+    const roundedValue = mapValues(point, Math.round)
 
-    const timer = setTimeout(() => {
-      handleRelease(keys, key)
+    if (isEqual(lastCursorPoint.value, roundedValue)) return
 
-      releaseTimers.delete(key)
-    }, delay)
+    lastCursorPoint.value = roundedValue
 
-    releaseTimers.set(key, timer)
+    return handleMouseMove(point)
   }
 
   useTauriListen<DeviceEvent>(LISTEN_KEY.DEVICE_CHANGED, ({ payload }) => {
@@ -148,41 +77,30 @@ export function useDevice() {
 
       if (!nextValue) return
 
-      const isLeftSide = supportLeftKeys.value.includes(nextValue)
-
-      const pressedKeys = isLeftSide ? pressedLeftKeys : pressedRightKeys
-
       if (nextValue === 'CapsLock') {
-        handlePress(pressedKeys, nextValue)
+        handlePress(nextValue)
 
-        return handleScheduleRelease(pressedKeys, nextValue, 100)
+        return debouncedRelease(nextValue)
       }
 
       if (kind === 'KeyboardPress') {
-        if (isWindows) {
-          handleScheduleRelease(pressedKeys, nextValue)
-        }
-
-        return handlePress(pressedKeys, nextValue)
+        return handlePress(nextValue)
       }
 
-      return handleRelease(pressedKeys, nextValue)
+      return handleRelease(nextValue)
     }
 
     switch (kind) {
       case 'MousePress':
-        return handlePress(pressedMouses, value)
+        return handleMouseChange(value)
       case 'MouseRelease':
-        return handleRelease(pressedMouses, value)
+        return handleMouseChange(value, false)
       case 'MouseMove':
-        return Object.assign(mousePosition, value)
+        return processMouseMove(value)
     }
   })
 
   return {
-    pressedMouses,
-    mousePosition,
-    pressedLeftKeys,
-    pressedRightKeys,
+    startListening,
   }
 }

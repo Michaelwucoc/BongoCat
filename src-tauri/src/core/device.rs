@@ -2,12 +2,10 @@ use rdev::{Event, EventType, listen};
 use serde::Serialize;
 use serde_json::{Value, json};
 use std::sync::atomic::{AtomicBool, Ordering};
-use tauri::{AppHandle, Emitter};
-
-static IS_RUNNING: AtomicBool = AtomicBool::new(false);
+use tauri::{AppHandle, Emitter, Runtime, command};
 
 #[derive(Debug, Clone, Serialize)]
-pub enum DeviceKind {
+pub enum DeviceEventKind {
     MousePress,
     MouseRelease,
     MouseMove,
@@ -17,56 +15,49 @@ pub enum DeviceKind {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct DeviceEvent {
-    kind: DeviceKind,
+    kind: DeviceEventKind,
     value: Value,
 }
 
-pub fn start_listening(app_handle: AppHandle) {
-    if IS_RUNNING.load(Ordering::SeqCst) {
-        return;
+static IS_LISTENING: AtomicBool = AtomicBool::new(false);
+
+#[command]
+pub async fn start_device_listening<R: Runtime>(app_handle: AppHandle<R>) -> Result<(), String> {
+    if IS_LISTENING.load(Ordering::SeqCst) {
+        return Ok(());
     }
 
-    IS_RUNNING.store(true, Ordering::SeqCst);
+    IS_LISTENING.store(true, Ordering::SeqCst);
 
     let callback = move |event: Event| {
-        let device = match event.event_type {
+        let device_event = match event.event_type {
             EventType::ButtonPress(button) => DeviceEvent {
-                kind: DeviceKind::MousePress,
+                kind: DeviceEventKind::MousePress,
                 value: json!(format!("{:?}", button)),
             },
             EventType::ButtonRelease(button) => DeviceEvent {
-                kind: DeviceKind::MouseRelease,
+                kind: DeviceEventKind::MouseRelease,
                 value: json!(format!("{:?}", button)),
             },
             EventType::MouseMove { x, y } => DeviceEvent {
-                kind: DeviceKind::MouseMove,
+                kind: DeviceEventKind::MouseMove,
                 value: json!({ "x": x, "y": y }),
             },
             EventType::KeyPress(key) => DeviceEvent {
-                kind: DeviceKind::KeyboardPress,
+                kind: DeviceEventKind::KeyboardPress,
                 value: json!(format!("{:?}", key)),
             },
             EventType::KeyRelease(key) => DeviceEvent {
-                kind: DeviceKind::KeyboardRelease,
+                kind: DeviceEventKind::KeyboardRelease,
                 value: json!(format!("{:?}", key)),
             },
             _ => return,
         };
 
-        if let Err(e) = app_handle.emit("device-changed", device) {
-            eprintln!("Failed to emit event: {:?}", e);
-        }
+        let _ = app_handle.emit("device-changed", device_event);
     };
 
-    #[cfg(target_os = "macos")]
-    if let Err(e) = listen(callback) {
-        eprintln!("Device listening error: {:?}", e);
-    }
+    listen(callback).map_err(|err| format!("Failed to listen device: {:?}", err))?;
 
-    #[cfg(not(target_os = "macos"))]
-    std::thread::spawn(move || {
-        if let Err(e) = listen(callback) {
-            eprintln!("Device listening error: {:?}", e);
-        }
-    });
+    Ok(())
 }
