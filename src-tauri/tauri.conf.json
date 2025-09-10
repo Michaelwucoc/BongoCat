@@ -9,7 +9,6 @@
     "beforeBuildCommand": "pnpm build",
     "frontendDist": "../dist"
   },
-  
   "app": {
     "macOSPrivateApi": true,
     "windows": [
@@ -23,16 +22,6 @@
         "decorations": false,
         "acceptFirstMouse": true,
         "skipTaskbar": true
-      },
-      {
-        "label": "preference",
-        "title": "Bongo Cat - Preferences",
-        "url": "index.html/#/preference",
-        "visible": false,
-        "titleBarStyle": "Overlay",
-        "hiddenTitle": true,
-        "minWidth": 800,
-        "minHeight": 600
       }
     ],
     "security": {
@@ -41,9 +30,7 @@
       "assetProtocol": {
         "enable": true,
         "scope": {
-          "allow": [
-            "**/*"
-          ],
+          "allow": ["**/*"],
           "requireLiteralLeadingDot": false
         }
       }
@@ -52,15 +39,8 @@
   "bundle": {
     "active": true,
     "category": "Game",
-    "createUpdaterArtifacts": true,
-    "targets": [
-      "nsis",
-      "dmg",
-      "app",
-      "appimage",
-      "deb",
-      "rpm"
-    ],
+    "createUpdaterArtifacts": false,
+    "targets": ["nsis", "dmg", "app", "appimage", "deb", "rpm"],
     "shortDescription": "BongoCat",
     "icon": [
       "icons/32x32.png",
@@ -69,25 +49,6 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "resources": [
-      "assets/tray.png",
-      "assets/models",
-      "assets/locales"
-    ]
-  },
-  "plugins": {
-    "updater": {
-      "dangerousInsecureTransportProtocol": true,
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEExQzI2RTZERDg3ODg5MkUKUldRdWlYalliVzdDb1VISWFUdmJLdDN6RFBwMlozUExLSFQvaTRYck55NnZmSFl2Y0ppMUx0aGQK",
-      "endpoints": [
-        "https://github.com/cuonglmptit/bongocat-i18n/releases/latest/download/latest.json"
-      ]
-    },
-    "fs": {
-      "requireLiteralLeadingDot": false
-    }
-  },
-  "updater": {
-  "active": false
+    "resources": ["assets/tray.png", "assets/models", "assets/locales"]
   }
 }
