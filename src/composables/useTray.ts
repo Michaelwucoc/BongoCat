@@ -9,8 +9,9 @@ import { openUrl } from '@tauri-apps/plugin-opener'
 import { exit, relaunch } from '@tauri-apps/plugin-process'
 import { watchDebounced } from '@vueuse/core'
 import { watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-import { GITHUB_LINK, LISTEN_KEY } from '../constants'
+import { GITHUB_LINK, GITHUB_LINK_I18N_FORKED, LISTEN_KEY } from '../constants'
 import { showWindow } from '../plugins/window'
 import { isMac } from '../utils/platform'
 
@@ -23,6 +24,16 @@ const TRAY_ID = 'BONGO_CAT_TRAY'
 export function useTray() {
   const catStore = useCatStore()
   const { getSharedMenu } = useSharedMenu()
+
+  // Use vue-i18n for tray menu translations
+  const { t } = useI18n()
+
+  // Rebuild tray menu when locale changes
+  const { locale } = useI18n()
+
+  watch(locale, () => {
+    updateTrayMenu()
+  })
 
   watch([() => catStore.visible, () => catStore.penetrable], () => {
     updateTrayMenu()
@@ -67,29 +78,33 @@ export function useTray() {
     const items = await Promise.all([
       ...await getSharedMenu(),
       PredefinedMenuItem.new({ item: 'Separator' }),
+      // Replaced hardcoded text with translation key
       MenuItem.new({
-        text: '检查更新',
+        text: t('trayMenu.checkUpdate'),
         action: () => {
           showWindow()
-
           emit(LISTEN_KEY.UPDATE_APP)
         },
       }),
       MenuItem.new({
-        text: '开源地址',
+        text: t('trayMenu.openSource'),
         action: () => openUrl(GITHUB_LINK),
+      }),
+      MenuItem.new({
+        text: `${`${t('trayMenu.openSource')} (i18n)`}`,
+        action: () => openUrl(GITHUB_LINK_I18N_FORKED),
       }),
       PredefinedMenuItem.new({ item: 'Separator' }),
       MenuItem.new({
-        text: `版本 ${appVersion}`,
+        text: `${t('trayMenu.version')} v${appVersion}`,
         enabled: false,
       }),
       MenuItem.new({
-        text: '重启应用',
+        text: t('trayMenu.restart'),
         action: relaunch,
       }),
       MenuItem.new({
-        text: '退出应用',
+        text: t('trayMenu.exit'),
         accelerator: isMac ? 'Cmd+Q' : '',
         action: () => exit(0),
       }),

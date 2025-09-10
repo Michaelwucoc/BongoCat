@@ -1,6 +1,5 @@
 export const GITHUB_LINK = 'https://github.com/ayangweb/BongoCat'
-
-export const UPGRADE_LINK_ACCESS_KEY = 'xDbrq2rOoRThDqKOHL2ZRA'
+export const GITHUB_LINK_I18N_FORKED = 'https://github.com/cuonglmptit/bongocat-i18n'
 
 export const LISTEN_KEY = {
   SHOW_WINDOW: 'show-window',
