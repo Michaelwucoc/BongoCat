@@ -9,6 +9,7 @@
     "beforeBuildCommand": "pnpm build",
     "frontendDist": "../dist"
   },
+  
   "app": {
     "macOSPrivateApi": true,
     "windows": [
@@ -85,5 +86,8 @@
     "fs": {
       "requireLiteralLeadingDot": false
     }
+  }
+  "updater": {
+  "active": false
   }
 }
