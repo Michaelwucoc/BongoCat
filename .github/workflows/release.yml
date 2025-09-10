@@ -1,36 +1,14 @@
-name: BongoCat Release
+name: BongoCat Build
 
 on:
   push:
     branches:
-      - master       # 监听 main 分支
-    tags:
-      - 'v*'       # 监听 tag
+      - main       # 监听 main 分支
   workflow_dispatch:  # 手动触发
 
 jobs:
-  create-release:
-    runs-on: ubuntu-latest
-    outputs:
-      TAG_NAME: ${{ steps.set_tag.outputs.tag }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set tag variable
-        id: set_tag
-        run: |
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-          else
-            echo "tag=" >> $GITHUB_OUTPUT
-          fi
-
   build-app:
-    needs: create-release
-    permissions:
-      contents: write
+    runs-on: ${{ matrix.platform }}
     strategy:
       fail-fast: false
       matrix:
@@ -50,7 +28,6 @@ jobs:
           - platform: ubuntu-22.04-arm
             target: aarch64-unknown-linux-gnu
 
-    runs-on: ${{ matrix.platform }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -99,29 +76,12 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ""
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: BongoCat ${{ github.ref_name }}
-          releaseBody: ''
           releaseDraft: true
           prerelease: false
           args: --target ${{ matrix.target }}
 
-      - name: Determine release tag
-        id: release_tag
-        run: |
-          if [ -n "${{ needs.create-release.outputs.TAG_NAME }}" ]; then
-            echo "tag=${{ needs.create-release.outputs.TAG_NAME }}" >> $GITHUB_OUTPUT
-          else
-            tag=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
-            echo "tag=$tag" >> $GITHUB_OUTPUT
-          fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload release assets
-        uses: softprops/action-gh-release@v1
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: ${{ steps.release_tag.outputs.tag }}
-          files: target/${{ matrix.target }}/release/bundle/**/* 
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: bongo-cat-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/bundle/**
