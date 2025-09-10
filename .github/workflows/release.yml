@@ -2,28 +2,30 @@ name: BongoCat Release
 
 on:
   push:
-      # 监听 tag 和 main 分支
-    tags:
-      - 'v*'
     branches:
-      - master
-  workflow_dispatch:
+      - main       # 监听 main 分支
+    tags:
+      - 'v*'       # 监听 tag
+  workflow_dispatch:  # 手动触发
 
 jobs:
   create-release:
     runs-on: ubuntu-latest
+    outputs:
+      TAG_NAME: ${{ steps.set_tag.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Set output
-        id: vars
-        run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
 
-      - name: Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      - name: Set tag variable
+        id: set_tag
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=" >> $GITHUB_OUTPUT
+          fi
 
   build-app:
     needs: create-release
@@ -37,14 +39,12 @@ jobs:
             target: aarch64-apple-darwin
           - platform: macos-latest
             target: x86_64-apple-darwin
-
           - platform: windows-latest
             target: x86_64-pc-windows-msvc
           - platform: windows-latest
             target: i686-pc-windows-msvc
           - platform: windows-latest
             target: aarch64-pc-windows-msvc
-
           - platform: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
           - platform: ubuntu-22.04-arm
@@ -54,18 +54,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Setup node
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
       - uses: pnpm/action-setup@v3
         with:
           version: latest
 
-      - name: Install rust target
+      - name: Install Rust target
         run: rustup target add ${{ matrix.target }}
 
-      - name: Install dependencies (ubuntu only)
+      - name: Install dependencies (Ubuntu only)
         if: startsWith(matrix.platform, 'ubuntu')
         run: |
           sudo apt-get update
@@ -79,7 +81,7 @@ jobs:
         with:
           workspaces: target
 
-      - name: Sync node version and setup cache
+      - name: Sync Node version and setup cache
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -96,24 +98,30 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ""
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
-          
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: BongoCat ${{ needs.create-release.outputs.APP_VERSION }}
+          releaseName: BongoCat ${{ github.ref_name }}
           releaseBody: ''
           releaseDraft: true
           prerelease: false
           args: --target ${{ matrix.target }}
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: bongo-cat-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/bundle/
+
+      - name: Determine release tag
+        id: release_tag
+        run: |
+          if [ -n "${{ needs.create-release.outputs.TAG_NAME }}" ]; then
+            echo "tag=${{ needs.create-release.outputs.TAG_NAME }}" >> $GITHUB_OUTPUT
+          else
+            # 获取最新 release tag
+            tag=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
+            echo "tag=$tag" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Upload release assets
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            target/${{ matrix.target }}/release/bundle/**/* 
+          tag_name: ${{ steps.release_tag.outputs.tag }}
+          files: target/${{ matrix.target }}/release/bundle/**/* 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
