@@ -2,8 +2,11 @@ name: BongoCat Release
 
 on:
   push:
+      # 监听 tag 和 main 分支
     tags:
       - 'v*'
+    branches:
+      - master
   workflow_dispatch:
 
 jobs:
