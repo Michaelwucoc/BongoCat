@@ -86,7 +86,7 @@
     "fs": {
       "requireLiteralLeadingDot": false
     }
-  }
+  },
   "updater": {
   "active": false
   }
